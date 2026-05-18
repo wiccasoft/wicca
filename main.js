@@ -1,4 +1,4 @@
-// main.js
+
 //Zero UI Lag: Because the for loop lives inside worker.js, your main Electron process can immediately handle layout rendering, user clicks, and underlying window updates via IPC (1).
 
 const { app, BrowserWindow, ipcMain } = require('electron');
