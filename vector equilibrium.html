@@ -85,7 +85,8 @@
         for (let j = i + 1; j < dVerts.length; j++) {
             const dist = dVerts[i].distanceTo(dVerts[j]);
             // İki yüzey merkezi arasındaki altın oran bazlı ideal mesafe eşiği
-            if (dist > 0.70 && dist < 0.85) {
+      // Sınır değerleri genişletilerek tam Dodecahedron kenarları yakalandı
+            if (dist > 0.90 && dist < 1.15) {
                 linePairs.push(dVerts[i], dVerts[j]);
             }
         }
