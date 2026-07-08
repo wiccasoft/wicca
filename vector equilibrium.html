@@ -22,22 +22,50 @@ controls.dampingFactor = 0.05;
 const geometryGroup = new THREE.Group();
 scene.add(geometryGroup);
 
-// D) 1-4-7 (Kırmızı) ve 2-5-8 (Mavi) Yıldız Tetrahedronları
-const v = [
-    [1,1,1], [1,-1,-1], [-1,1,-1], [-1,-1,1], // Set 1
-    [1,1,-1], [1,-1,1], [-1,1,1], [-1,-1,-1]  // Set 2
-];
-const indices = [0,1,2, 0,2,3, 0,3,1, 1,2,3]; // Tetra İndeksleri
 
-function addTetra(verts, col) {
-    const geo = new THREE.BufferGeometry().setFromPoints(verts.map(p => new THREE.Vector3(...p)));
-    geo.setIndex(indices);
-    const mat = new THREE.MeshBasicMaterial({color: col, wireframe: true, transparent: true, opacity: 0.5});
-    geometryGroup.add(new THREE.Mesh(geo, mat));
+const phi = (1 + Math.sqrt(5)) / 2;
+// D) GÖRSELDEKİ MANYETİK SAYI FREKANSLARINA GÖRE YÜZEY RENKLENDİRME
+const tetraVertices1 = [1, 1, 1,   1, -1, -1,  -1, 1, -1,  -1, -1, 1]; // Tetra 1
+const tetraVertices2 = [1, 1, -1,  1, -1, 1,   -1, 1, 1,   -1, -1, -1]; // Tetra 2
+
+const tIndices =;
+
+function addMagneticTetra(vertices, faceColors) {
+    // Her bir üçgen yüzeyi bağımsız renklendirmek için explicit geometri kurulumu
+    for(let f = 0; f < 4; f++) {
+        const geo = new THREE.BufferGeometry();
+        const vIdx = [tIndices[f*3], tIndices[f*3+1], tIndices[f*3+2]];
+        
+        const pos = [];
+        vIdx.forEach(idx => {
+            pos.push(vertices[idx*3], vertices[idx*3+1], vertices[idx*3+2]);
+        });
+        
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        geo.computeVertexNormals();
+        
+        // Katı Yüzey Materyali (Çift taraflı görünürlük)
+        const mat = new THREE.MeshBasicMaterial({
+            color: faceColors[f],
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.65
+        });
+        
+        // Kenar Çizgileri Matı (Daha belirgin dalga formu için)
+        const edgeGeo = new THREE.EdgesGeometry(geo);
+        const lineMat = new THREE.LineBasicMaterial({ color: faceColors[f], linewidth: 1.5 });
+        
+        geometryGroup.add(new THREE.Mesh(geo, mat));
+        geometryGroup.add(new THREE.LineSegments(edgeGeo, lineMat));
+    }
 }
 
-addTetra(v.slice(0,4), 0xff1e1e); // 1-4-7 Kırmızı
-addTetra(v.slice(4,8), 0x00d2ff); // 2-5-8 Mavi
+// 1. TETRAHEDRON YÜZEY FREKANSLARI (3-Beyaz, 1-Kırmızı, 7-Turuncu, 4-Sarı)
+addMagneticTetra(tetraVertices1, [0xffffff, 0xff0000, 0xff6600, 0xffcc00]);
+
+// 2. TETRAHEDRON YÜZEY FREKANSLARI (6-Siyah/Koyu Gri, 5-Mor, 2-Mavi, 8-Cyan)
+addMagneticTetra(tetraVertices2, [0x222222, 0x9900ff, 0x0000ff, 0x00ccff]);
 
 const icoVertices = [
     -1,  phi,  0,    1,  phi,  0,   -1, -phi,  0,    1, -phi,  0,
