@@ -68,18 +68,30 @@ icoGeom2.computeVertexNormals();
 const icoMat2 = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.15 });
 geometryGroup.add(new THREE.Mesh(icoGeom2, icoMat2));
 
+
+
 const cubeGeom = new THREE.BoxGeometry(2, 2, 2);
 const cubeEdges = new THREE.EdgesGeometry(cubeGeom);
 const cubeMat = new THREE.LineBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.25 });
 geometryGroup.add(new THREE.LineSegments(cubeEdges, cubeMat));
 
 
+// Kürelerin yerleştirilmesi (En alttaki asıl döngü)
 for (let i = 0; i < veVertices.length; i += 3) {
     const sphereMat = new THREE.MeshBasicMaterial({ color: vertexColorsMapping[i/3] || 0xffffff, depthTest: false });
     const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
     sphereMesh.position.set(veVertices[i], veVertices[i+1], veVertices[i+2]);
     geometryGroup.add(sphereMesh);
 }
+
+
+
+
+
+// ARADAKİ HATALI DÖNGÜ SİLİNDİ, DOĞRUDAN BURADAN DEVAM EDİYOR:
+// -------------------------------------------------------------
+// C) VECTOR EQUILIBRIUM VE ARİTMETİK RENK KÜRELERİ (3-6-9 / 1-4-7 / 2-5-8)
+// -------------------------------------------------------------
 // -------------------------------------------------------------
 // C) VECTOR EQUILIBRIUM VE ARİTMETİK RENK KÜRELERİ (3-6-9 / 1-4-7 / 2-5-8)
 // -------------------------------------------------------------
