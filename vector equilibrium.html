@@ -94,7 +94,7 @@
         // Tam merkezlere minik beyaz küreler kondur
         const dotMesh = new THREE.Mesh(
             new THREE.SphereGeometry(0.03, 8, 8), 
-            new THREE.MeshBasicMaterial({ color: 0xffffff })
+            new THREE.MeshBasicMaterial({ color: 0xffffff,depthTest: false })
         );
         dotMesh.position.copy(cPoint);
         geometryGroup.add(dotMesh);
@@ -105,8 +105,8 @@
     for (let i = 0; i < fCenters.length; i++) {
         for (let j = i + 1; j < fCenters.length; j++) {
             const dist = fCenters[i].distanceTo(fCenters[j]);
-            // Kusursuz komşuluk mesafe aralığı (0.70 - 0.80)
-            if (dist > 0.70 && dist < 0.80) {
+           // Mesafe aralığı 0.95 - 1.15 yapılarak 20 yüzey merkezi tam komşuluk bağlarıyla örüldü
+            if (dist > 0.95 && dist < 1.15) {
                 cLinePairs.push(fCenters[i], fCenters[j]);
             }
         }
@@ -118,7 +118,7 @@
     const cNetwork = new THREE.LineSegments(cLineGeo, cLineMat);
     geometryGroup.add(cNetwork);
 
-    
+
     // -------------------------------------------------------------
     // B) ORTADAKİ KÜP (SARI)
     // -------------------------------------------------------------
