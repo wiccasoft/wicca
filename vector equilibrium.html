@@ -61,6 +61,45 @@
     const icoMesh = new THREE.Mesh(icoGeom, icoMat);
     geometryGroup.add(icoMesh);
 
+
+     // -------------------------------------------------------------
+    // A-2) DUAL GEOMETRİ: ZODIAC KAFESİ (PEMBE DODECAHEDRON)
+    // -------------------------------------------------------------
+    const dVerts = [];
+    const posAttr = icoGeom.getAttribute('position');
+    const icoIdx = icoGeom.getIndex().array;
+
+    // Icosahedron'un 20 üçgen yüzeyinin merkez noktalarını hesapla
+    for (let i = 0; i < icoIdx.length; i += 3) {
+        const vA = new THREE.Vector3().fromBufferAttribute(posAttr, icoIdx[i]);
+        const vB = new THREE.Vector3().fromBufferAttribute(posAttr, icoIdx[i+1]);
+        const vC = new THREE.Vector3().fromBufferAttribute(posAttr, icoIdx[i+2]);
+        
+        // Üçgen merkez koordinatı (A + B + C) / 3
+        const center = new THREE.Vector3().addVectors(vA, vB).add(vC).multiplyScalar(1 / 3);
+        dVerts.push(center);
+    }
+
+    // Hesaplanan 20 merkez köşe noktasını Dodecahedron indeks yapısıyla bağla
+    const dIndices = "0,1,2,0,2,3,0,3,4, 0,4,5,0,5,1,1,5,6, 1,6,7,1,7,2,2,7,8, 2,8,9,2,9,3,3,9,10, 3,10,11,3,11,4,4,11,12, 4,12,13,4,13,5,5,13,14, 5,14,6,6,14,15,6,15,7, 7,15,16,7,16,8,8,16,17, 8,17,9,9,17,18,9,18,10, 10,18,19,10,19,11,11,19,12, 12,19,13,14,13,12,14,12,15, 15,12,16,16,12,17,17,12,18".split(",").map(Number);
+
+    const dodecaGeom = new THREE.BufferGeometry();
+    const dFloatArray = new Float32Array(dVerts.length * 3);
+    dVerts.forEach((v, idx) => {
+        dFloatArray[idx*3] = v.x;
+        dFloatArray[idx*3+1] = v.y;
+        dFloatArray[idx*3+2] = v.z;
+    });
+
+    dodecaGeom.setAttribute('position', new THREE.Float32BufferAttribute(dFloatArray, 3));
+    dodecaGeom.setIndex(dIndices);
+    dodecaGeom.computeVertexNormals();
+
+    const dodecaMat = new THREE.MeshBasicMaterial({ color: 0xff00aa, wireframe: true, transparent: true, opacity: 0.35 });
+    const dodecaSolidMat = new THREE.MeshBasicMaterial({ color: 0xff00aa, transparent: true, opacity: 0.03, side: THREE.DoubleSide });
+    
+    geometryGroup.add(new THREE.Mesh(dodecaGeom, dodecaMat));
+    geometryGroup.add(new THREE.Mesh(dodecaGeom, dodecaSolidMat));
     // -------------------------------------------------------------
     // B) ORTADAKİ KÜP (SARI)
     // -------------------------------------------------------------
@@ -143,6 +182,8 @@
     const kirmiziSolid = new THREE.Mesh(tetra2Geom, kirmiziFaceMat);
     geometryGroup.add(kirmiziMesh, kirmiziSolid);
 
+
+    
     // -------------------------------------------------------------
     // E) EN MERKEZDEKİ OCTAHEDRON (CYAN / TURKUAZ) - 6 Köşe, 8 Yüzey
     // -------------------------------------------------------------
