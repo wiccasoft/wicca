@@ -62,15 +62,53 @@
     geometryGroup.add(icoMesh);
 
 
- // -------------------------------------------------------------
-    // A-2) DUAL GEOMETRİ: ZODIAC KAFESİ (PEMBE DODECAHEDRON)
+     // -------------------------------------------------------------
+    // A-2) ICOSAHEDRON YÜZEY MERKEZLERİNİ BİRLEŞTİREN NOKTASAL BAĞLAR
     // -------------------------------------------------------------
-    // Yeşil Icosahedron'un yüzey merkezleriyle birebir aynı ölçekte pembe kafes oluşturulur
-    const dodecahedronGeom = new THREE.DodecahedronGeometry(1.177); 
-    const dodecaLineGeo = new THREE.EdgesGeometry(dodecahedronGeom);
-    const dodecaLineMat = new THREE.LineBasicMaterial({ color: 0xff00aa, linewidth: 2, transparent: true, opacity: 0.5 });
-    const zodiacCage = new THREE.LineSegments(dodecaLineGeo, dodecaLineMat);
-    geometryGroup.add(zodiacCage);
+    const faceCenters = [];
+    const posAttribute = icoGeom.getAttribute('position');
+    const icoIndicesArray = icoGeom.getIndex().array;
+
+    // 1. Her bir 20 üçgen yüzeyin tam orta noktasını hesapla
+    for (let i = 0; i < icoIndicesArray.length; i += 3) {
+        const vertexA = new THREE.Vector3().fromBufferAttribute(posAttribute, icoIndicesArray[i]);
+        const vertexB = new THREE.Vector3().fromBufferAttribute(posAttribute, icoIndicesArray[i+1]);
+        const vertexC = new THREE.Vector3().fromBufferAttribute(posAttribute, icoIndicesArray[i+2]);
+        
+        // Üçgen merkez formülü: (A + B + C) / 3
+        const centerPoint = new THREE.Vector3()
+            .addVectors(vertexA, vertexB)
+            .add(vertexC)
+            .multiplyScalar(1 / 3);
+            
+        faceCenters.push(centerPoint);
+
+        // Merkezlere küçük beyaz birer küre/nokta atalım (Net görmek için)
+        const dotGeo = new THREE.SphereGeometry(0.03, 8, 8);
+        const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const dotMesh = new THREE.Mesh(dotGeo, dotMat);
+        dotMesh.position.copy(centerPoint);
+        geometryGroup.add(dotMesh);
+    }
+
+    // 2. Bu 20 merkez noktayı birbirine en yakın komşularıyla çizgisel olarak birleştir
+    const centerLinePairs = [];
+    for (let i = 0; i < faceCenters.length; i++) {
+        for (let j = i + 1; j < faceCenters.length; j++) {
+            const distance = faceCenters[i].distanceTo(faceCenters[j]);
+            
+            // Icosahedron yüzey merkezleri arasındaki kusursuz komşuluk mesafe eşiği
+            if (distance > 0.90 && distance < 1.15) {
+                centerLinePairs.push(faceCenters[i], faceCenters[j]);
+            }
+        }
+    }
+
+    // 3. Hesaplanan bağ çizgilerini sahneye pembe renkli ince ışınlar olarak bas
+    const centerLineGeo = new THREE.BufferGeometry().setFromPoints(centerLinePairs);
+    const centerLineMat = new THREE.LineBasicMaterial({ color: 0xff00aa, linewidth: 2, transparent: true, opacity: 0.6 });
+    const centerNetwork = new THREE.LineSegments(centerLineGeo, centerLineMat);
+    geometryGroup.add(centerNetwork);
     // -------------------------------------------------------------
     // B) ORTADAKİ KÜP (SARI)
     // -------------------------------------------------------------
@@ -152,7 +190,6 @@
     const kirmiziFaceMat = new THREE.MeshBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.05, side: THREE.DoubleSide });
     const kirmiziSolid = new THREE.Mesh(tetra2Geom, kirmiziFaceMat);
     geometryGroup.add(kirmiziMesh, kirmiziSolid);
-
 
     
     // -------------------------------------------------------------
