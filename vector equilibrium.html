@@ -29,43 +29,54 @@ const tetraVertices1 = [1, 1, 1,   1, -1, -1,  -1, 1, -1,  -1, -1, 1]; // Tetra 
 const tetraVertices2 = [1, 1, -1,  1, -1, 1,   -1, 1, 1,   -1, -1, -1]; // Tetra 2
 
 
+// D) GÖRSELLE BİREBİR KESKİN YÜZEY BOYAMA MOTORU
+function makeFace(p1, p2, p3, hexColor) {
+    const geo = new THREE.BufferGeometry();
+    const pos = [
+        p1[0], p1[1], p1[2],
+        p2[0], p2[1], p2[2],
+        p3[0], p3[1], p3[2]
+    ];
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.computeVertexNormals();
 
-function addMagneticTetra(vertices, faceColors) {
-    // Her bir üçgen yüzeyi bağımsız renklendirmek için explicit geometri kurulumu
-    for(let f = 0; f < 4; f++) {
-        const geo = new THREE.BufferGeometry();
-        const vIdx = [tIndices[f*3], tIndices[f*3+1], tIndices[f*3+2]];
-        
-        const pos = [];
-        vIdx.forEach(idx => {
-            pos.push(vertices[idx*3], vertices[idx*3+1], vertices[idx*3+2]);
-        });
-        
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-        geo.computeVertexNormals();
-        
-        // Katı Yüzey Materyali (Çift taraflı görünürlük)
-        const mat = new THREE.MeshBasicMaterial({
-            color: faceColors[f],
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.65
-        });
-        
-        // Kenar Çizgileri Matı (Daha belirgin dalga formu için)
-        const edgeGeo = new THREE.EdgesGeometry(geo);
-        const lineMat = new THREE.LineBasicMaterial({ color: faceColors[f], linewidth: 1.5 });
-        
-        geometryGroup.add(new THREE.Mesh(geo, mat));
-        geometryGroup.add(new THREE.LineSegments(edgeGeo, lineMat));
-    }
+    const mat = new THREE.MeshBasicMaterial({
+        color: hexColor,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.90
+    });
+
+    const edge = new THREE.EdgesGeometry(geo);
+    const line = new THREE.LineSegments(edge, new THREE.LineBasicMaterial({ color: 0x111111, linewidth: 2 }));
+
+    geometryGroup.add(new THREE.Mesh(geo, mat));
+    geometryGroup.add(line);
 }
 
-// 1. TETRAHEDRON YÜZEY FREKANSLARI (3-Beyaz, 1-Kırmızı, 7-Turuncu, 4-Sarı)
-addMagneticTetra(tetraVertices1, [0xffffff, 0xff0000, 0xff6600, 0xffcc00]);
+// 1-4-7 ERİL TETRAHEDRON YÜZEYLERİ (Beyaz, Kırmızı, Turuncu, Sarı)
+makeFace([1,1,1], [1,-1,-1], [-1,1,-1], 0xffffff); // Yüzey 3 (Beyaz)
+makeFace([1,1,1], [-1,1,-1], [-1,-1,1], 0xff0000); // Yüzey 1 (Kırmızı)
+makeFace([1,1,1], [-1,-1,1], [1,-1,-1], 0xff6600); // Yüzey 7 (Turuncu)
+makeFace([1,-1,-1], [-1,-1,1], [-1,1,-1], 0xffcc00); // Yüzey 4 (Sarı)
 
-// 2. TETRAHEDRON YÜZEY FREKANSLARI (6-Siyah/Koyu Gri, 5-Mor, 2-Mavi, 8-Cyan)
-addMagneticTetra(tetraVertices2, [0x222222, 0x9900ff, 0x0000ff, 0x00ccff]);
+// 2-5-8 DİŞİL TETRAHEDRON YÜZEYLERİ (Siyah, Mor, Mavi, Cyan)
+makeFace([1,1,-1], [1,-1,1], [-1,1,1], 0x111111); // Yüzey 6 (Siyah)
+makeFace([1,1,-1], [-1,1,1], [-1,-1,-1], 0x9900ff); // Yüzey 5 (Mor)
+makeFace([1,1,-1], [-1,-1,-1], [1,-1,1], 0x0000ff); // Yüzey 2 (Mavi)
+makeFace([1,-1,1], [-1,-1,-1], [-1,1,1], 0x00ccff); // Yüzey 8 (Cyan)
+
+// 1-4-7 ERİL VORTEX (Yüzeyler sırasıyla: 3-Beyaz, 1-Kırmızı, 7-Turuncu, 4-Sarı)
+createSharpTetra(
+    [, [1,-1,-1], [-1,1,-1], [-1,-1,1]], 
+    [0xffffff, 0xff0000, 0xff6600, 0xffcc00]
+);
+
+// 2-5-8 DİŞİL VORTEX (Yüzeyler sırasıyla: 6-Siyah, 5-Mor, 2-Mavi, 8-Cyan)
+createSharpTetra(
+    [[1,1,-1], [1,-1,1], [-1,1,1], [-1,-1,-1]], 
+    [0x111111, 0x9900ff, 0x0000ff, 0x00ccff]
+);
 
 const icoVertices = [
     -1,  phi,  0,    1,  phi,  0,   -1, -phi,  0,    1, -phi,  0,
@@ -130,19 +141,13 @@ geometryGroup.add(centerSphere);
 function animate() {
     requestAnimationFrame(animate);
     
-    // Kutsal geometri modelinin kendi ekseninde dengeli dönüşü
-    geometryGroup.rotation.y += 0.002;
-    geometryGroup.rotation.x += 0.001;
+    // Dönüş kodları tamamen kapatıldı / sıfırlandı
+    // geometryGroup.rotation.y += 0.002;
+    // geometryGroup.rotation.x += 0.001;
 
     controls.update();
     renderer.render(scene, camera);
 }
-
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
 
 // Sistemi Başlat
 animate();
