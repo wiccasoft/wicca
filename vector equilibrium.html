@@ -65,35 +65,9 @@
  // -------------------------------------------------------------
     // A-2) DUAL GEOMETRİ: ZODIAC KAFESİ (PEMBE DODECAHEDRON)
     // -------------------------------------------------------------
-    const dVerts = [];
-    const posAttr = icoGeom.getAttribute('position');
-    const icoIdx = icoGeom.getIndex().array;
-
-    // 1. Icosahedron yüzey merkezlerini hesapla (20 Adet Kozmik Nokta)
-    for (let i = 0; i < icoIdx.length; i += 3) {
-        const vA = new THREE.Vector3().fromBufferAttribute(posAttr, icoIdx[i]);
-        const vB = new THREE.Vector3().fromBufferAttribute(posAttr, icoIdx[i+1]);
-        const vC = new THREE.Vector3().fromBufferAttribute(posAttr, icoIdx[i+2]);
-        const center = new THREE.Vector3().addVectors(vA, vB).add(vC).multiplyScalar(1 / 3);
-        dVerts.push(center);
-    }
-
-    // 2. Filtre engeline takılmayan akıllı çizgi bağlama sistemi
-    const linePairs = [];
-    // Yakınlık algoritması: Birbirine en yakın olan yüzey merkezlerini kozmik bağlarla birleştir
-    for (let i = 0; i < dVerts.length; i++) {
-        for (let j = i + 1; j < dVerts.length; j++) {
-            const dist = dVerts[i].distanceTo(dVerts[j]);
-            // İki yüzey merkezi arasındaki altın oran bazlı ideal mesafe eşiği
-      // Sınır değerleri genişletilerek tam Dodecahedron kenarları yakalandı
-            if (dist > 0.90 && dist < 1.15) {
-                linePairs.push(dVerts[i], dVerts[j]);
-            }
-        }
-    }
-
-    // 3. Pembe Zodiac Kafesini Sahneye Bas
-    const dodecaLineGeo = new THREE.BufferGeometry().setFromPoints(linePairs);
+    // Yeşil Icosahedron'un yüzey merkezleriyle birebir aynı ölçekte pembe kafes oluşturulur
+    const dodecahedronGeom = new THREE.DodecahedronGeometry(1.177); 
+    const dodecaLineGeo = new THREE.EdgesGeometry(dodecahedronGeom);
     const dodecaLineMat = new THREE.LineBasicMaterial({ color: 0xff00aa, linewidth: 2, transparent: true, opacity: 0.5 });
     const zodiacCage = new THREE.LineSegments(dodecaLineGeo, dodecaLineMat);
     geometryGroup.add(zodiacCage);
