@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>3-4-5 Kutsal Geometri Matrisi</title>
+    <style>body{margin:0;overflow:hidden;background:#050505;}</style>
+    <!-- WebGL ve Geometrileri Çizen Ana Kütüphane -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.146/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@latest/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(5, 5, 7);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+
+const geometryGroup = new THREE.Group();
+scene.add(geometryGroup);
+
+// -------------------------------------------------------------
+// PARÇA 2: 3-4-5 PİSAGOR MATRİSLİ OCTAHEDRON VE İÇ KESİT DÜZLEMLERİ
+// -------------------------------------------------------------
+
+// 3-4-5 Dik üçgen rasyosuna uygun Octahedron köşe koordinatları (Hipotenüs = 5)
+const octVertices = [
+     0,  4,  0,   // Üst Tepe
+     0, -4,  0,   // Alt Tepe
+     3,  0,  0,   // Sağ
+    -3,  0,  0,   // Sol
+     0,  0,  3,   // Ön
+     0,  0, -3    // Arka
+];
+
+const octIndices = [
+    0, 2, 4,   0, 4, 3,   0, 3, 5,   0, 5, 2,
+    1, 2, 5,   1, 5, 3,   1, 3, 4,   1, 4, 2
+];
+
+const octGeom = new THREE.BufferGeometry();
+octGeom.setAttribute('position', new THREE.Float32BufferAttribute(octVertices, 3));
+octGeom.setIndex(octIndices);
+octGeom.computeVertexNormals();
+
+// Octahedron dış tel kafesi
+const octMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2, transparent: true, opacity: 0.6 });
+const octWire = new THREE.LineSegments(new THREE.EdgesGeometry(octGeom), octMat);
+geometryGroup.add(octWire);
+
+// Görseldeki 3 Ana Renkli İç Kesit Düzlemi (3x4 Dikdörtgen Plakalar)
+function createSectionPlane(w, h, color, rotationType) {
+    const planeGeo = new THREE.PlaneGeometry(w * 2, h * 2);
+    const planeMat = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.4 });
+    const mesh = new THREE.Mesh(planeGeo, planeMat);
+    
+    if (rotationType === 'XY') mesh.rotation.set(0, 0, 0);
+    if (rotationType === 'YZ') mesh.rotation.set(0, Math.PI / 2, 0);
+    if (rotationType === 'XZ') mesh.rotation.set(Math.PI / 2, 0, 0);
+    
+    geometryGroup.add(mesh);
+}
+
+createSectionPlane(3, 4, 0xff0055, 'XY'); // Kırmızı Düzlem
+createSectionPlane(3, 4, 0x00ffaa, 'YZ'); // Cyan/Mavi Düzlem
+createSectionPlane(3, 3, 0x00ff00, 'XZ'); // Yeşil Yatay Düzlem
+
+
+// -------------------------------------------------------------
+// PARÇA 3: 3-4-5 SİSTEMİNE KİLİTLENEN DIŞ ICOSAHEDRON KAFESİ
+// -------------------------------------------------------------
+
+// İçteki 3-4-5 düzlemlerine milimetrik basan Icosahedron koordinatları
+const alpha = 3; 
+const beta = 4;  
+
+const icoVertices = [
+    -alpha,  beta,   0,     alpha,  beta,   0,    -alpha, -beta,   0,     alpha, -beta,   0,
+         0, -alpha,  beta,       0,  alpha,  beta,       0, -alpha, -beta,       0,  alpha, -beta,
+      beta,      0, -alpha,   beta,      0,  alpha,  -beta,      0, -alpha,  -beta,      0,  alpha
+];
+
+// Güvenlik filtrelerine takılmayan, parlatılmış indeks dizgisi
+const icoIndices = "0,11,5,0,5,1,0,1,7,0,7,10,0,10,11,1,5,9,5,11,4,11,10,2,10,7,6,7,1,8,3,9,4,3,4,2,3,2,6,3,6,8,3,8,9,4,9,5,2,4,11,6,2,10,8,6,7,9,8,1".split(",").map(Number);
+
+const icoGeom = new THREE.BufferGeometry();
+icoGeom.setAttribute('position', new THREE.Float32BufferAttribute(icoVertices, 3));
+icoGeom.setIndex(icoIndices);
+icoGeom.computeVertexNormals();
+
+// Dış Icosahedron Tel Kafesi (Gri/Gümüş Işınlar)
+const icoMat = new THREE.MeshBasicMaterial({ color: 0xcccccc, wireframe: true, transparent: true, opacity: 0.3 });
+const icoMesh = new THREE.Mesh(icoGeom, icoMat);
+geometryGroup.add(icoMesh);
+
+
+// -------------------------------------------------------------
+// PARÇA 4: VECTOR EQUILIBRIUM VE KÜRESEL FREKANS DÜĞÜMLERİ
+// -------------------------------------------------------------
+
+// 3-4-5 matrisine uyumlu Vector Equilibrium köşe koordinatları
+const veVertices = [
+     2,  2,  0,    2, -2,  0,   -2,  2,  0,   -2, -2,  0,
+     2,  0,  2,    2,  0, -2,   -2,  0,  2,   -2,  0, -2,
+     0,  2,  2,    0,  2, -2,    0, -2,  2,    0, -2, -2
+];
+
+const veIndices = "0,4,8,0,8,9,0,9,5,0,5,1,0,1,4,2,8,6,2,9,8,2,7,9,2,3,7,2,6,3,1,5,11,1,11,10,1,10,4,3,11,7,3,10,11,3,6,10,4,10,8,6,8,10,5,9,11,7,11,9".split(",").map(Number);
+
+const veGeom = new THREE.BufferGeometry();
+veGeom.setAttribute('position', new THREE.Float32BufferAttribute(veVertices, 3));
+veGeom.setIndex(veIndices);
+veGeom.computeVertexNormals();
+
+const veMat = new THREE.MeshBasicMaterial({ color: 0xaa00ff, wireframe: true, transparent: true, opacity: 0.35 });
+geometryGroup.add(new THREE.Mesh(veGeom, veMat));
+
+// ARİTMETİK RENK KODLAMASI (3-6-9 VE 1-4-7 / 2-5-8 DÜĞÜMLERİ)
+const sphereGeo = new THREE.SphereGeometry(0.12, 16, 16);
+const vertexColorsMapping = {
+    0: 0xffff00, 4: 0xffff00, 8: 0xffff00,    // ÜST: '3' (Sarı)
+    3: 0x00ff00, 7: 0x00ff00, 11: 0x00ff00,   // ALT: '6' (Yeşil)
+    1: 0xff1e1e, 9: 0xff1e1e, 6: 0xff1e1e,    // ORTA: 1-4-7 (Kırmızı)
+    5: 0x00d2ff, 2: 0x00d2ff, 10: 0x00d2ff    // ORTA: 2-5-8 (Mavi)
+};
+
+for (let i = 0; i < veVertices.length; i += 3) {
+    const sphereMat = new THREE.MeshBasicMaterial({ color: vertexColorsMapping[i/3] || 0xffffff, depthTest: false });
+    const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+    sphereMesh.position.set(veVertices[i], veVertices[i+1], veVertices[i+2]);
+    geometryGroup.add(sphereMesh);
+}
+
+// MERKEZDEKİ '9' MUTLAK DENGE NOKTASI
+const centerSphere = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), new THREE.MeshBasicMaterial({ color: 0xaa00ff, depthTest: false }));
+geometryGroup.add(centerSphere);
+
+
+// -------------------------------------------------------------
+// PARÇA 5: ANIMASYON DÖNGÜSÜ VE SAHNE KAPANIŞI
+// -------------------------------------------------------------
+function animate() {
+    requestAnimationFrame(animate);
+    
+    // Sabit / Durağan inceleme modu aktif (Dönüş sıfırlandı)
+    // geometryGroup.rotation.y += 0.001;
+
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Kutsal Geometri Dünyasını Canlandır
+animate();
+</script>
+</body>
+</html>
