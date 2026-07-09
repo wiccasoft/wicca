@@ -110,6 +110,34 @@ const centerSphere = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), new 
 geometryGroup.add(centerSphere);
 
 
+
+// -------------------------------------------------------------
+// PARÇA 4-B: MATRİSE TAM UYUMLU KESKİN YÜZEY FREKANS TETRAHEDRONLARI
+// -------------------------------------------------------------
+function makeVortexFace(p1, p2, p3, hexColor) {
+    const geo = new THREE.BufferGeometry();
+    const pos = [p1[0],p1[1],p1[2], p2[0],p2[1],p2[2], p3[0],p3[1],p3[2]];
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.computeVertexNormals();
+
+    const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: hexColor, side: THREE.DoubleSide, transparent: true, opacity: 0.85 }));
+    const line = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x111111, linewidth: 2 }));
+    geometryGroup.add(mesh, line);
+}
+
+// 1-4-7 ERİL TETRAHEDRON YÜZEYLERİ (Beyaz, Kırmızı, Turuncu, Sarı) - Ölçek kilitlendi
+const tSize = 2;
+makeVortexFace([tSize, tSize, tSize], [tSize, -tSize, -tSize], [-tSize, tSize, -tSize], 0xffffff); // 3 (Beyaz)
+makeVortexFace([tSize, tSize, tSize], [-tSize, tSize, -tSize], [-tSize, -tSize, tSize], 0xff0000); // 1 (Kırmızı)
+makeVortexFace([tSize, tSize, tSize], [-tSize, -tSize, tSize], [tSize, -tSize, -tSize], 0xff6600); // 7 (Turuncu)
+makeVortexFace([tSize, -tSize, -tSize], [-tSize, -tSize, tSize], [-tSize, tSize, -tSize], 0xffcc00); // 4 (Sarı)
+
+// 2-5-8 DİŞİL TETRAHEDRON YÜZEYLERİ (Siyah, Mor, Mavi, Cyan) - Ölçek kilitlendi
+makeVortexFace([tSize, tSize, -tSize], [tSize, -tSize, tSize], [-tSize, tSize, tSize], 0x111111); // 6 (Siyah)
+makeVortexFace([tSize, tSize, -tSize], [-tSize, tSize, tSize], [-tSize, -tSize, -tSize], 0x9900ff); // 5 (Mor)
+makeVortexFace([tSize, tSize, -tSize], [-tSize, -tSize, -tSize], [tSize, -tSize, tSize], 0x0000ff); // 2 (Mavi)
+makeVortexFace([tSize, -tSize, tSize], [-tSize, -tSize, -tSize], [-tSize, tSize, tSize], 0x00ccff); // 8 (Cyan)
+
 // -------------------------------------------------------------
 // PARÇA 5: ANIMASYON DÖNGÜSÜ VE SAHNE KAPANIŞI
 // -------------------------------------------------------------
