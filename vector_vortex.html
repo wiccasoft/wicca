@@ -24,51 +24,25 @@ const geometryGroup = new THREE.Group();
 scene.add(geometryGroup);
 
 // -------------------------------------------------------------
-// PARÇA 2: 3-4-5 PİSAGOR MATRİSLİ OCTAHEDRON VE İÇ KESİT DÜZLEMLERİ
+// PARÇA 2: ICOSAHEDRON KÖŞELERİNE TAM KİLİTLENEN XYZ DÜZLEMLERİ
 // -------------------------------------------------------------
 
-// 3-4-5 Dik üçgen rasyosuna uygun Octahedron köşe koordinatları (Hipotenüs = 5)
-const octVertices = [
-     0,  4,  0,   // Üst Tepe
-     0, -4,  0,   // Alt Tepe
-     3,  0,  0,   // Sağ
-    -3,  0,  0,   // Sol
-     0,  0,  3,   // Ön
-     0,  0, -3    // Arka
-];
+// Düzlemlerin Icosahedron köşelerine tam sıfırlanması için altın oran dikdörtgen geometrisi
+const planeMatXY = new THREE.MeshBasicMaterial({ color: 0xff0055, side: THREE.DoubleSide, transparent: true, opacity: 0.45 }); // Kırmızı
+const planeMatYZ = new THREE.MeshBasicMaterial({ color: 0x00ffaa, side: THREE.DoubleSide, transparent: true, opacity: 0.45 }); // Cyan
+const planeMatXZ = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide, transparent: true, opacity: 0.45 }); // Yeşil
 
-const octIndices = [
-    0, 2, 4,   0, 4, 3,   0, 3, 5,   0, 5, 2,
-    1, 2, 5,   1, 5, 3,   1, 3, 4,   1, 4, 2
-];
+// Icosahedron'un tam köşe sınırlarına (1 ve phi değerlerine) kilitlenen kesit plakaları
+const meshXY = new THREE.Mesh(new THREE.PlaneGeometry(2, phi * 2), planeMatXY);
+const meshYZ = new THREE.Mesh(new THREE.PlaneGeometry(phi * 2, 2), planeMatYZ);
+const meshXZ = new THREE.Mesh(new THREE.PlaneGeometry(2, phi * 2), planeMatXZ);
 
-const octGeom = new THREE.BufferGeometry();
-octGeom.setAttribute('position', new THREE.Float32BufferAttribute(octVertices, 3));
-octGeom.setIndex(octIndices);
-octGeom.computeVertexNormals();
+// Düzlemleri görseldeki gibi eksenlerine tam olarak yatırıyoruz
+meshXY.rotation.set(0, 0, 0);
+meshYZ.rotation.set(0, Math.PI / 2, 0);
+meshXZ.rotation.set(Math.PI / 2, 0, Math.PI / 2);
 
-// Octahedron dış tel kafesi
-const octMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2, transparent: true, opacity: 0.6 });
-const octWire = new THREE.LineSegments(new THREE.EdgesGeometry(octGeom), octMat);
-geometryGroup.add(octWire);
-
-// Görseldeki 3 Ana Renkli İç Kesit Düzlemi (3x4 Dikdörtgen Plakalar)
-function createSectionPlane(w, h, color, rotationType) {
-    const planeGeo = new THREE.PlaneGeometry(w * 2, h * 2);
-    const planeMat = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.4 });
-    const mesh = new THREE.Mesh(planeGeo, planeMat);
-    
-    if (rotationType === 'XY') mesh.rotation.set(0, 0, 0);
-    if (rotationType === 'YZ') mesh.rotation.set(0, Math.PI / 2, 0);
-    if (rotationType === 'XZ') mesh.rotation.set(Math.PI / 2, 0, 0);
-    
-    geometryGroup.add(mesh);
-}
-
-createSectionPlane(3, 4, 0xff0055, 'XY'); // Kırmızı Düzlem
-createSectionPlane(3, 4, 0x00ffaa, 'YZ'); // Cyan/Mavi Düzlem
-createSectionPlane(3, 3, 0x00ff00, 'XZ'); // Yeşil Yatay Düzlem
-
+geometryGroup.add(meshXY, meshYZ, meshXZ);
 
 // -------------------------------------------------------------
 // PARÇA 3: 3-4-5 SİSTEMİNE KİLİTLENEN DIŞ ICOSAHEDRON KAFESİ
