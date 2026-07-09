@@ -61,64 +61,6 @@
     const icoMesh = new THREE.Mesh(icoGeom, icoMat);
     geometryGroup.add(icoMesh);
 
-
-    // -------------------------------------------------------------
-    // A-2) SAF MATEMATİKSEL ICOSAHEDRON YÜZEY MERKEZ BAĞLARI
-    // -------------------------------------------------------------
-    const fCenters = [];
-    
-    // Icosahedron'un 12 ana köşe koordinat listesi
-    const rawIcoVerts = [
-        -1,  phi,  0,    1,  phi,  0,   -1, -phi,  0,    1, -phi,  0,
-         0, -1,  phi,    0,  1,  phi,    0, -1, -phi,    0,  1, -phi,
-         phi,  0, -1,    phi,  0,  1,   -phi,  0, -1,   -phi,  0,  1
-    ];
-    
-    // 20 üçgen yüzeyin köşe indeks haritası (String tabanlı güvenlik filtresi aşımı)
-    const rawIcoIdx = "0,11,5,0,5,1,0,1,7,0,7,10,0,10,11,1,5,9,5,11,4,11,10,2,10,7,6,7,1,8,3,9,4,3,4,2,3,2,6,3,6,8,3,8,9,4,9,5,2,4,11,6,2,10,8,6,7,9,8,1".split(",").map(Number);
-
-    // 1. 20 Üçgen yüzeyin merkezlerini hesapla ve beyaz küreleri yerleştir
-    for (let i = 0; i < rawIcoIdx.length; i += 3) {
-        const idxA = rawIcoIdx[i] * 3;
-        const idxB = rawIcoIdx[i+1] * 3;
-        const idxC = rawIcoIdx[i+2] * 3;
-
-        const vA = new THREE.Vector3(rawIcoVerts[idxA], rawIcoVerts[idxA+1], rawIcoVerts[idxA+2]);
-        const vB = new THREE.Vector3(rawIcoVerts[idxB], rawIcoVerts[idxB+1], rawIcoVerts[idxB+2]);
-        const vC = new THREE.Vector3(rawIcoVerts[idxC], rawIcoVerts[idxC+1], rawIcoVerts[idxC+2]);
-        
-        // Merkez formülü: (A + B + C) / 3
-        const cPoint = new THREE.Vector3().addVectors(vA, vB).add(vC).multiplyScalar(1 / 3);
-        fCenters.push(cPoint);
-
-        // Tam merkezlere minik beyaz küreler kondur
-        const dotMesh = new THREE.Mesh(
-            new THREE.SphereGeometry(0.03, 8, 8), 
-            new THREE.MeshBasicMaterial({ color: 0xffffff,depthTest: false })
-        );
-        dotMesh.position.copy(cPoint);
-        geometryGroup.add(dotMesh);
-    }
-
-    // 2. 20 Merkez noktayı komşuluk mesafesine göre pürüzsüzce bağla
-    const cLinePairs = [];
-    for (let i = 0; i < fCenters.length; i++) {
-        for (let j = i + 1; j < fCenters.length; j++) {
-            const dist = fCenters[i].distanceTo(fCenters[j]);
-           // Mesafe aralığı 0.95 - 1.15 yapılarak 20 yüzey merkezi tam komşuluk bağlarıyla örüldü
-            if (dist > 0.95 && dist < 1.15) {
-                cLinePairs.push(fCenters[i], fCenters[j]);
-            }
-        }
-    }
-
-    // 3. İnce pembe çizgileri sahneye bas
-    const cLineGeo = new THREE.BufferGeometry().setFromPoints(cLinePairs);
-    const cLineMat = new THREE.LineBasicMaterial({ color: 0xff00aa, linewidth: 2, transparent: true, opacity: 0.6 });
-    const cNetwork = new THREE.LineSegments(cLineGeo, cLineMat);
-    geometryGroup.add(cNetwork);
-
-
     // -------------------------------------------------------------
     // B) ORTADAKİ KÜP (SARI)
     // -------------------------------------------------------------
@@ -201,7 +143,6 @@
     const kirmiziSolid = new THREE.Mesh(tetra2Geom, kirmiziFaceMat);
     geometryGroup.add(kirmiziMesh, kirmiziSolid);
 
-    
     // -------------------------------------------------------------
     // E) EN MERKEZDEKİ OCTAHEDRON (CYAN / TURKUAZ) - 6 Köşe, 8 Yüzey
     // -------------------------------------------------------------
