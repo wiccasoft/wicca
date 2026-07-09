@@ -46,7 +46,27 @@ meshXZ.rotation.set(Math.PI / 2, 0, Math.PI / 2);
 geometryGroup.add(meshXY, meshYZ, meshXZ);
 
 
+// -------------------------------------------------------------
+// PARÇA 3: XYZ DÜZLEMLERİNİN UÇLARINA KİLİTLENEN DIŞ ICOSAHEDRON
+// -------------------------------------------------------------
+// Düzlemlerin 12 uç noktası doğrudan Icosahedron'un köşeleridir (Ölçek: 1 ve phi)
+const icoVertices = [
+    -1,  phi,  0,     1,  phi,  0,    -1, -phi,  0,     1, -phi,  0,
+     0, -1,  phi,     0,  1,  phi,     0, -1, -phi,     0,  1, -phi,
+     phi,  0, -1,    phi,  0,  1,    -phi,  0, -1,    -phi,  0,  1
+];
 
+const icoIndices = "0,11,5,0,5,1,0,1,7,0,7,10,0,10,11,1,5,9,5,11,4,11,10,2,10,7,6,7,1,8,3,9,4,3,4,2,3,2,6,3,6,8,3,8,9,4,9,5,2,4,11,6,2,10,8,6,7,9,8,1".split(",").map(Number);
+
+const icoGeom = new THREE.BufferGeometry();
+icoGeom.setAttribute('position', new THREE.Float32BufferAttribute(icoVertices, 3));
+icoGeom.setIndex(icoIndices);
+icoGeom.computeVertexNormals();
+
+// İnce, yarı şeffaf dış Icosahedron kafesi
+const icoMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.2 });
+const icoMesh = new THREE.Mesh(icoGeom, icoMat);
+geometryGroup.add(icoMesh);
 
 // -------------------------------------------------------------
 // PARÇA 4: VECTOR EQUILIBRIUM VE KÜRESEL FREKANS DÜĞÜMLERİ
